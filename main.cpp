@@ -6,7 +6,8 @@
 #include <chrono>
 #include <ctime>
 
-std::mutex kitchen_mtx;
+std::mutex order_mtx;
+std::mutex delivery_mtx;
 
 std::vector<std::string>orders;
 std::vector<std::string>delivery;
@@ -35,9 +36,9 @@ void orderGenerator(){
         std::this_thread::sleep_for(std::chrono::seconds(waitTime));
         std::string newOrder = dishGenerator();
         std::cout << "Waiter:: order accepted: " << newOrder <<std::endl;
-        kitchen_mtx.lock();
+        order_mtx.lock();
         orders.push_back(newOrder);
-        kitchen_mtx.unlock();
+        order_mtx.unlock();
     }
 
 }
@@ -49,12 +50,14 @@ void cooking(){
         if(!orders.empty()){
             std::cout<<"Kitchen:: order "<<orders[0]<<" is cooking"<<std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(waitTime));
-            kitchen_mtx.lock();
+            delivery_mtx.lock();
             delivery.push_back(orders[0]);
+            delivery_mtx.unlock();
             std::cout<<"Kitchen:: The order "<<orders[0]<<" has been sent to delivery!"<<std::endl;
             cookedOrders++;
+            order_mtx.lock();
             orders.erase(orders.begin());
-            kitchen_mtx.unlock();
+            order_mtx.unlock();
         }
     }
 }
@@ -66,10 +69,10 @@ void delivering(){
             std::cout << "Courier:: The order " << delivery[0] << " is delivering!" << std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(30));
             std::cout << "Courier:: The order " << delivery[0] << " is delivered!" << std::endl;
-            kitchen_mtx.lock();
+            delivery_mtx.lock();
             delivery.erase(delivery.begin());
             deliveredOrders++;
-            kitchen_mtx.unlock();
+            delivery_mtx.unlock();
 
         }
     }
