@@ -5,9 +5,9 @@
 #include <mutex>
 #include <chrono>
 #include <ctime>
-std::mutex waiter_mtx;
+
 std::mutex kitchen_mtx;
-std::mutex courier_mtx;
+
 std::vector<std::string>orders;
 std::vector<std::string>delivery;
 
@@ -35,9 +35,9 @@ void orderGenerator(){
         std::this_thread::sleep_for(std::chrono::seconds(waitTime));
         std::string newOrder = dishGenerator();
         std::cout << "Waiter:: order accepted: " << newOrder <<std::endl;
-        waiter_mtx.lock();
+        kitchen_mtx.lock();
         orders.push_back(newOrder);
-        waiter_mtx.unlock();
+        kitchen_mtx.unlock();
     }
 
 }
@@ -66,10 +66,10 @@ void delivering(){
             std::cout << "Courier:: The order " << delivery[0] << " is delivering!" << std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(30));
             std::cout << "Courier:: The order " << delivery[0] << " is delivered!" << std::endl;
-            courier_mtx.lock();
+            kitchen_mtx.lock();
             delivery.erase(delivery.begin());
             deliveredOrders++;
-            courier_mtx.unlock();
+            kitchen_mtx.unlock();
 
         }
     }
